@@ -10,16 +10,16 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService implements IProduct{
+public class ProductService implements IProduct {
     private final ProductRepository productRepository;
 
+    @Override
     public void addProduct(Product product) {
-        Product newProduct = new Product();
-        newProduct.setRef(UUID.randomUUID().toString());
-        newProduct.setName(product.getName());
-        productRepository.save(newProduct);
+        product.setRef(UUID.randomUUID().toString());
+        productRepository.save(product);
     }
 
+    @Override
     public List<Product> getProducts() {
         return productRepository.findAll();
     }
