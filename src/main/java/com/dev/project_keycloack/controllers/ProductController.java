@@ -8,10 +8,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/products")
@@ -20,27 +19,21 @@ public class ProductController {
     private final IProduct productService;
 
     @GetMapping
-    public String getProducts(ModelMap model) {
+    @ResponseBody
+    public List<Product> getProducts() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (!(authentication instanceof JwtAuthenticationToken)) {
-            model.addAttribute("error", "L'utilisateur n'est pas authentifié !");
-            return "error";
+            throw new RuntimeException("L'utilisateur n'est pas authentifié !");
         }
 
-        JwtAuthenticationToken jwtToken = (JwtAuthenticationToken) authentication;
-        var list = productService.getProducts();
-        model.addAttribute("products", list);
-        model.addAttribute("product", new Product());
-        model.addAttribute("username", jwtToken.getTokenAttributes().get("preferred_username"));
-        model.addAttribute("name", jwtToken.getTokenAttributes().get("name"));
-        return "product";
+        return productService.getProducts();
     }
 
-
     @PostMapping
-    public String addProduct(ModelMap model, @ModelAttribute Product product) {
+    @ResponseBody
+    public String addProduct(@RequestBody Product product) {
         productService.addProduct(product);
-        return "redirect:/products";
+        return "Produit ajouté avec succès !";
     }
 }
