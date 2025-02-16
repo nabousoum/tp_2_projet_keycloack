@@ -3,12 +3,14 @@ package com.dev.project_keycloack.controllers;
 import com.dev.project_keycloack.entities.Product;
 import com.dev.project_keycloack.services.IProduct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/products")
@@ -17,20 +19,21 @@ public class ProductController {
     private final IProduct productService;
 
     @GetMapping
-    public String getProducts(ModelMap model) {
-//        OAuth2AuthenticationToken authentication =
-//                (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        var list = productService.getProducts();
-        model.addAttribute("products", list);
-        model.addAttribute("product", new Product());
-//        model.addAttribute("username", authentication.getPrincipal().getAttribute("preferred_username"));
-//        model.addAttribute("name", authentication.getPrincipal().getAttribute("name"));
-        return "product";
+    @ResponseBody
+    public List<Product> getProducts() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication instanceof JwtAuthenticationToken)) {
+            throw new RuntimeException("L'utilisateur n'est pas authentifié !");
+        }
+
+        return productService.getProducts();
     }
 
     @PostMapping
-    public String addProduct(ModelMap model, @ModelAttribute Product product) {
+    @ResponseBody
+    public String addProduct(@RequestBody Product product) {
         productService.addProduct(product);
-        return "redirect:/products";
+        return "Produit ajouté avec succès !";
     }
 }
